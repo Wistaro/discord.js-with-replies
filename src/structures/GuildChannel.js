@@ -519,22 +519,7 @@ class GuildChannel extends Channel {
    * @returns {Promise<GuildChannel>}
    */
   clone(options = {}) {
-    Util.mergeDefault(
-      {
-        name: this.name,
-        permissionOverwrites: this.permissionOverwrites,
-        topic: this.topic,
-        type: this.type,
-        nsfw: this.nsfw,
-        parent: this.parent,
-        bitrate: this.bitrate,
-        userLimit: this.userLimit,
-        rateLimitPerUser: this.rateLimitPerUser,
-        reason: null,
-      },
-      options,
-    );
-    return this.guild.channels.create(options.name, options);
+    return this.guild.channels.clone(this, options);
   }
   /* eslint-enable max-len */
 
@@ -613,10 +598,7 @@ class GuildChannel extends Channel {
    *   .catch(console.error);
    */
   delete(reason) {
-    return this.client.api
-      .channels(this.id)
-      .delete({ reason })
-      .then(() => this);
+    return this.guild.channels.delete(this.id, reason).then(() => this);
   }
 }
 

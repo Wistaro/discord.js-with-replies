@@ -4,6 +4,7 @@ const BaseManager = require('./BaseManager');
 const GuildChannel = require('../structures/GuildChannel');
 const PermissionOverwrites = require('../structures/PermissionOverwrites');
 const { ChannelTypes } = require('../util/Constants');
+const Util = require('../util/Util');
 
 /**
  * Manages API methods for GuildChannels and stores their cache.
@@ -125,6 +126,59 @@ class GuildChannelManager extends BaseManager {
       reason,
     });
     return this.client.actions.ChannelCreate.handle(data).channel;
+  }
+
+  /* eslint-disable max-len */
+  /**
+   * Clones a channel in a guild
+   * @param {GuildChannelResolvable} channel The channel to clone
+   * @param {Object} [options] The options
+   * @param {string} [options.name=channel.name] Name of the new channel
+   * @param {OverwriteResolvable[]|Collection<Snowflake, OverwriteResolvable>} [options.permissionOverwrites=channel.permissionOverwrites]
+   * Permission overwrites of the new channel
+   * @param {string} [options.type=channel.type] Type of the new channel
+   * @param {string} [options.topic=channel.topic] Topic of the new channel (only text)
+   * @param {boolean} [options.nsfw=channel.nsfw] Whether the new channel is nsfw (only text)
+   * @param {number} [options.bitrate=channel.bitrate] Bitrate of the new channel in bits (only voice)
+   * @param {number} [options.userLimit=channel.userLimit] Maximum amount of users allowed in the new channel (only voice)
+   * @param {number} [options.rateLimitPerUser=channel.rateLimitPerUser] Ratelimit per user for the new channel (only text)
+   * @param {ChannelResolvable} [options.parent=channel.parent] Parent of the new channel
+   * @param {string} [options.reason] Reason for cloning the channel
+   * @returns {Promise<GuildChannel>}
+   */
+  async clone(channel, options) {
+    channel = this.resolve(channel);
+    if (!channel) throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
+
+    Util.mergeDefault(
+      {
+        name: channel.name,
+        permissionOverwrites: channel.permissionOverwrites,
+        topic: channel.topic,
+        type: channel.type,
+        nsfw: channel.nsfw,
+        parent: channel.parent,
+        bitrate: channel.bitrate,
+        userLimit: channel.userLimit,
+        rateLimitPerUser: channel.rateLimitPerUser,
+        reason: channel,
+      },
+      options,
+    );
+    return this.create(options.name, options);
+  }
+
+  /**
+   * Deletes a channel from a guild
+   * @param {GuildChannelResolvable} channel The channel to delete
+   * @param {string} reason Reason for deleting this channel
+   * @returns {Promise<void>}
+   */
+  async delete(channel, reason) {
+    channel = this.resolveID(channel);
+    if (!channel) throw new TypeError('INVALID_TYPE', 'channel', 'GuildChannelResolvable');
+
+    await this.client.api.channels(channel).delete({ reason });
   }
 }
 
