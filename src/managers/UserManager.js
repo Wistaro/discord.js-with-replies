@@ -59,6 +59,8 @@ class UserManager extends BaseManager {
    * @returns {Promise<User>}
    */
   async fetch(id, cache = true, force = false) {
+    if (!id) throw new TypeError('INVALID_TYPE', 'id', 'Snowflake');
+
     if (!force) {
       const existing = this.cache.get(id);
       if (existing && !existing.partial) return existing;
